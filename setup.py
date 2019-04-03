@@ -230,5 +230,3 @@ def setup_package():
 
 if __name__ == "__main__":
     setup_package()
-    # cleanup
-    shutil.rmtree("%s.egg-info" % DISTNAME)
