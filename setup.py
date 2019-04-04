@@ -230,3 +230,4 @@ def setup_package():
 
 if __name__ == "__main__":
     setup_package()
+    print("HALLO ICH BIN VERSION 0.0.4")
