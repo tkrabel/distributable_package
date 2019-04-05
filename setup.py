@@ -3,15 +3,18 @@
 # check setuptools source code 
 # https://bitbucket.org/pypa/setuptools/src/312a67d000cb05d15b854957466c4751cf5e1c08/setuptools/command/install.py?at=default&fileviewer=file-view-default
 
-from pkg_resources import parse_version # to compare versions correctly (e.g. '10.0.0' > '2.0.0')
-from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-import setuptools
 import os
 import platform # get python version and python inplementation
 import shutil
 import sys
 import traceback
+from pkg_resources import parse_version # to compare versions correctly (e.g. '10.0.0' > '2.0.0')
+from distutils.command.clean import clean as Clean
+from setuptools.extension import Extension
+from setuptools import setup
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
+
 
 if sys.version_info < (3, 6):
     raise RuntimeError("Python 3.6 or later required. The current"
@@ -29,7 +32,6 @@ DOWNLOAD_URL = 'https://pypi.org/project/dispypkg/#files'
 LICENSE = 'new BSD'
 VERSION = '0.0.4'
 
-
 class CustomBuildExt(build_ext):
     def run(self):
         build_ext.run(self)
@@ -43,7 +45,39 @@ class CustomBuildExt(build_ext):
             shutil.copyfile(os.path.join(source_dir, path), 
                             os.path.join(destination_dir, path))
 
-cmdclass = {'build_ext': CustomBuildExt}
+
+
+# Custom clean command to remove build artifacts
+
+class CleanCommand(Clean):
+    description = "Remove build artifacts from the source tree"
+
+    def run(self):
+        Clean.run(self)
+        # Remove c files if we are not within a sdist package
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        remove_c_files = not os.path.exists(os.path.join(cwd, 'PKG-INFO'))
+        if remove_c_files:
+            print('Will remove generated .c files')
+        if os.path.exists('build'):
+            shutil.rmtree('build')
+        for dirpath, dirnames, filenames in os.walk('sklearn'):
+            for filename in filenames:
+                if any(filename.endswith(suffix) for suffix in
+                       (".so", ".pyd", ".dll", ".pyc")):
+                    os.unlink(os.path.join(dirpath, filename))
+                    continue
+                extension = os.path.splitext(filename)[1]
+                if remove_c_files and extension in ['.c', '.cpp']:
+                    pyx_file = str.replace(filename, extension, '.pyx')
+                    if os.path.exists(os.path.join(dirpath, pyx_file)):
+                        os.unlink(os.path.join(dirpath, filename))
+            for dirname in dirnames:
+                if dirname == '__pycache__':
+                    shutil.rmtree(os.path.join(dirpath, dirname))
+
+
+cmdclass = {'build_ext': CustomBuildExt, 'clean': CleanCommand}
 
 
 # Optional wheelhouse-uploader features
@@ -59,37 +93,22 @@ if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
 
     cmdclass.update(vars(wheelhouse_uploader.cmd))
 
-
-def setup_package():
-    metadata = dict(name=DISTNAME,
-                    maintainer=MAINTAINER,
-                    maintainer_email=MAINTAINER_EMAIL,
-                    description=DESCRIPTION,
-                    license=LICENSE,
-                    url=URL,
-                    download_url=DOWNLOAD_URL,
-                    version=VERSION,
-                    long_description=LONG_DESCRIPTION,
-                    classifiers=['Intended Audience :: Data Scientists',
-                                 'Programming Language :: C',
-                                 'Programming Language :: Python',
-                                 'Operating System :: Microsoft :: Windows',
-                                 'Operating System :: POSIX',
-                                 'Operating System :: Unix',
-                                 'Operating System :: MacOS',
-                                 'Programming Language :: Python :: 3.6',
-                                 'Programming Language :: Python :: 3.7'
-                                 ],
-                    cmdclass=cmdclass,
-                    ext_modules=cythonize([
-                        setuptools.extension(
-                            "%s.*" % DISTNAME, 
-                            ["%s/*.py" % DISTNAME]
-                        )
-                    ])
-                )
-
-    setuptools.setup(**metadata)
-
-if __name__ == "__main__":
-    setup_package()
+setup(
+  name=DISTNAME,
+  cmdclass=cmdclass,
+  ext_modules=cythonize([
+    Extension(f"{DISTNAME}.*", [f"{DISTNAME}/*.py"])]
+  ),
+  version=VERSION,
+  description=DESCRIPTION,
+  long_description=LONG_DESCRIPTION,
+  author=MAINTAINER,                   
+  author_email=MAINTAINER_EMAIL,
+  url=URL,
+  download_url=DOWNLOAD_URL,
+  packages=[],
+  include_package_data=True,
+  classifiers=[
+    'Intended Audience :: Data Scientists'
+  ],
+)
