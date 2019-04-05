@@ -4,4 +4,5 @@
 Useful commands
 
 - `git clean -fxd`
-
+- `git tag -a X.X.X -m "new release"`
+- `git push --tags`
