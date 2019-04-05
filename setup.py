@@ -23,7 +23,7 @@ if sys.version_info < (3, 6):
 
 DISTNAME = 'dispypkg'
 DESCRIPTION = 'Description'
-with open('README.rst') as f:
+with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'TK'
 MAINTAINER_EMAIL = 'tobiaskrabel@gmail.com'
