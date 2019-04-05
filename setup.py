@@ -30,7 +30,7 @@ MAINTAINER_EMAIL = 'tobiaskrabel@gmail.com, florian.wetschoreck@gmail.com'
 URL = ''
 DOWNLOAD_URL = 'https://pypi.org/project/dispypkg/#files'
 LICENSE = ''
-VERSION = '0.0.5'
+VERSION = '0.0.6'
 
 
 # custom commands in setup pipeline
