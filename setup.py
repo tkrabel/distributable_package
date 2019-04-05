@@ -52,14 +52,10 @@ class CleanCommand(Clean):
 
     def run(self):
         Clean.run(self)
-        # Remove c files if we are not within a sdist package
-        cwd = os.path.abspath(os.path.dirname(__file__))
-        remove_c_files = not os.path.exists(os.path.join(cwd, 'PKG-INFO'))
-        if remove_c_files:
-            print('Will remove generated .c files')
         if os.path.exists('build'):
             shutil.rmtree('build')
         for dirpath, dirnames, filenames in os.walk(DISTNAME):
+            print(dirpath, dirnames, filenames)
             for filename in filenames:
                 if any(filename.endswith(suffix) for suffix in
                        (".pyc", ".c")):
@@ -74,10 +70,10 @@ cmdclass = {'build_ext': CustomBuildExt, 'clean': CleanCommand}
 
 setup(
   name=DISTNAME,
-  cmdclass=cmdclass,
   ext_modules=cythonize([
-    Extension(f"{DISTNAME}.*", [f"{DISTNAME}/*.py"])]
-  ),
+    Extension(f"{DISTNAME}.*", [f"{DISTNAME}/*.py"])
+  ]),
+  cmdclass=cmdclass,
   version=VERSION,
   description=DESCRIPTION,
   long_description=LONG_DESCRIPTION,
