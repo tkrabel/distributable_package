@@ -71,7 +71,7 @@ cmdclass = {'build_ext': CustomBuildExt, 'clean': CleanCommand}
 setup(
   name=DISTNAME,
   ext_modules=cythonize([
-    Extension(f"{DISTNAME}.*", [f"{DISTNAME}/*.py"])
+    Extension(f"{DISTNAME}.*", [f"{DISTNAME}/[!__init]*.py"])
   ]),
   cmdclass=cmdclass,
   version=VERSION,
