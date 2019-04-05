@@ -30,7 +30,7 @@ MAINTAINER_EMAIL = 'tobiaskrabel@gmail.com'
 URL = ''
 DOWNLOAD_URL = 'https://pypi.org/project/dispypkg/#files'
 LICENSE = 'new BSD'
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 
 class CustomBuildExt(build_ext):
     def run(self):
